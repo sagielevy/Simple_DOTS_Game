@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
@@ -53,7 +52,7 @@ namespace sandbox
                 Angular = float3.zero
             };
 
-            //var health = UnityEngine.Random.Range(0, maxHealth + 1);
+            // Non-uniform distribtution of health per unit.
             var health = Mathf.Pow(UnityEngine.Random.value, 6) * maxHealth;
 
             var randomOffset = UnityEngine.Random.insideUnitCircle * spawningRadius;

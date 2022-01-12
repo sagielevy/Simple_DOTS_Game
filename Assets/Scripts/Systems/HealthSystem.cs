@@ -1,12 +1,10 @@
-﻿using System;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Physics.Systems;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace sandbox
 {
@@ -16,8 +14,6 @@ namespace sandbox
         private BeginInitializationEntityCommandBufferSystem bufferSystem;
         private BuildPhysicsWorld buildPhysicsWorld;
         private StepPhysicsWorld stepPhysicsWorld;
-        private const float maxDamage = 50;
-        private const float minDamage = 5;
 
         protected override void OnCreate()
         {
@@ -58,11 +54,6 @@ namespace sandbox
                 // Only a single direction of the collision will pass (A, B) OR (B, A)
                 if (TestEntityTrigger(collisionEvent.EntityA, collisionEvent.EntityB))
                 {
-                    //var rand = new Unity.Mathematics.Random {
-                    //    state = (uint)(collisionEvent.EntityA.Index + collisionEvent.EntityB.Index)
-                    //};
-                    //var damage = rand.NextFloat(minDamage, maxDamage);
-
                     var orgHealthA = entitiesWithHealth[collisionEvent.EntityA].health;
                     var orgHealthB = entitiesWithHealth[collisionEvent.EntityB].health;
                     var damage = math.min(orgHealthA, orgHealthB);
