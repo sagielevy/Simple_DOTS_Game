@@ -10,9 +10,9 @@ using Random = Unity.Mathematics.Random;
 namespace sandbox
 {
     [AlwaysSynchronizeSystem]
-    public class UnitTargeting : JobComponentSystem
+    public class UnitTargeting : SystemBase
     {
-        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        protected override void OnUpdate()
         {
             var ecb1 = new EntityCommandBuffer(Allocator.TempJob);
             var ecb1Writer = ecb1.AsParallelWriter();
@@ -33,7 +33,7 @@ namespace sandbox
                 var rand = GenerateRandom(time, entity.Index);
                 var randomBUnit = teamBArray[rand.NextInt(0, teamBArray.Length)];
                 ecb1Writer.AddComponent(entityInQueryIndex, entity, new UnitHasTarget { target = randomBUnit });
-            }).Schedule(inputDeps);
+            }).ScheduleParallel(Dependency);
 
             var job2 = Entities
                 .WithAll<TeamBTag>()
@@ -44,7 +44,7 @@ namespace sandbox
                 var rand = GenerateRandom(time, entity.Index);
                 var randomAUnit = teamAArray[rand.NextInt(0, teamAArray.Length)];
                 ecb2Writer.AddComponent(entityInQueryIndex, entity, new UnitHasTarget { target = randomAUnit });
-            }).Schedule(inputDeps);
+            }).ScheduleParallel(Dependency);
 
             job1.Complete();
             job2.Complete();
@@ -55,8 +55,6 @@ namespace sandbox
             ecb2.Dispose();
             teamAArray.Dispose();
             teamBArray.Dispose();
-
-            return job2;
         }
 
         private static Random GenerateRandom(double time, int index)

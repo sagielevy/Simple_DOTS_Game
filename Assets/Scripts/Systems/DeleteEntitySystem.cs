@@ -7,7 +7,7 @@ namespace sandbox
     // Should always run last as it removes entities.
     [AlwaysSynchronizeSystem]
     [UpdateAfter(typeof(HealthSystem))]
-    public class DeleteEntitySystem : JobComponentSystem
+    public class DeleteEntitySystem : SystemBase
     {
         EntityQuery deletedEntitiesGroupQuery;
         EndSimulationEntityCommandBufferSystem commandBufferSystem;
@@ -18,7 +18,7 @@ namespace sandbox
             commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        protected override void OnUpdate()
         {
             var commandBuffer1 = commandBufferSystem.CreateCommandBuffer();
             var commandBuffer1Writer = commandBuffer1.AsParallelWriter();
@@ -37,12 +37,10 @@ namespace sandbox
                 {
                     commandBuffer1Writer.RemoveComponent<UnitHasTarget>(entityInQueryIndex, other);
                 }
-            }).Schedule(inputDeps);
+            }).ScheduleParallel(Dependency);
 
             job1.Complete();
             deletedEntities.Dispose();
-
-            return default;
         }
     }
 }

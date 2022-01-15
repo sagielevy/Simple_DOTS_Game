@@ -8,9 +8,9 @@ namespace sandbox
 {
     [AlwaysSynchronizeSystem]
     [UpdateAfter(typeof(UnitTargeting))]
-    public class MovementSystem : JobComponentSystem
+    public class MovementSystem : SystemBase
     {
-        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        protected override void OnUpdate()
         {
             float deltaTime = Time.DeltaTime;
             var translations = GetComponentDataFromEntity<Translation>(true);
@@ -25,9 +25,7 @@ namespace sandbox
                 var newVel = direction * speedData.speed * deltaTime;
 
                 vel.Linear.xz += newVel.xz;
-            }).Run();
-
-            return default;
+            }).ScheduleParallel();
         }
     }
 }

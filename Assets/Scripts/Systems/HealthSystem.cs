@@ -9,7 +9,7 @@ using Unity.Transforms;
 namespace sandbox
 {
     [AlwaysSynchronizeSystem]
-    public class HealthSystem : JobComponentSystem
+    public class HealthSystem : SystemBase
     {
         private BeginInitializationEntityCommandBufferSystem bufferSystem;
         private BuildPhysicsWorld buildPhysicsWorld;
@@ -22,9 +22,9 @@ namespace sandbox
             stepPhysicsWorld = World.GetOrCreateSystem<StepPhysicsWorld>();
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        protected override void OnUpdate()
         {
-            TriggerJob triggerJob = new TriggerJob
+            var triggerJob = new TriggerJob
             {
                 entitiesWithHealth = GetComponentDataFromEntity<HealthData>(),
                 teamAEntities = GetComponentDataFromEntity<TeamATag>(),
@@ -33,11 +33,9 @@ namespace sandbox
                 commandBuffer = bufferSystem.CreateCommandBuffer()
             };
 
-            var triggerJobHandle = triggerJob.Schedule(stepPhysicsWorld.Simulation, ref buildPhysicsWorld.PhysicsWorld, inputDeps);
+            var triggerJobHandle = triggerJob.Schedule(stepPhysicsWorld.Simulation, ref buildPhysicsWorld.PhysicsWorld, Dependency);
             bufferSystem.AddJobHandleForProducer(triggerJobHandle);
             triggerJobHandle.Complete();
-
-            return triggerJobHandle;
         }
 
         private struct TriggerJob : ICollisionEventsJob
