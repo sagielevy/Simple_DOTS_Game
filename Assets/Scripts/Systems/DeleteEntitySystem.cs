@@ -4,25 +4,29 @@ using Unity.Collections;
 
 namespace sandbox
 {
+    // Should always run last as it removes entities.
     [AlwaysSynchronizeSystem]
     [UpdateAfter(typeof(HealthSystem))]
     public class DeleteEntitySystem : JobComponentSystem
     {
         EntityQuery deletedEntitiesGroupQuery;
+        EndSimulationEntityCommandBufferSystem commandBufferSystem;
 
         protected override void OnCreate()
         {
             deletedEntitiesGroupQuery = GetEntityQuery(ComponentType.ReadOnly<DeleteTag>());
+            commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var commandBuffer1 = new EntityCommandBuffer(Allocator.TempJob);
+            var commandBuffer1 = commandBufferSystem.CreateCommandBuffer();
             var commandBuffer1Writer = commandBuffer1.AsParallelWriter();
-            var commandBuffer2 = new EntityCommandBuffer(Allocator.TempJob);
-            var commandBuffer2Writer = commandBuffer2.AsParallelWriter();
+
+            commandBuffer1.DestroyEntitiesForEntityQuery(deletedEntitiesGroupQuery);
 
             var deletedEntities = deletedEntitiesGroupQuery.ToEntityArray(Allocator.TempJob);
+            GameManager.instance.EntitiesCount -= deletedEntities.Length;
 
             // No one must point to destroyed entities anymore
             var job1 = Entities
@@ -35,25 +39,10 @@ namespace sandbox
                 }
             }).Schedule(inputDeps);
 
-            var job2 = Entities
-                .WithAll<DeleteTag>()
-                .WithoutBurst()
-                .ForEach((Entity entity, int entityInQueryIndex) =>
-                {
-                    GameManager.instance.EntitiesCount -= 1;
-                    commandBuffer2Writer.DestroyEntity(entityInQueryIndex, entity);
-                }).Schedule(job1);
-
             job1.Complete();
-            job2.Complete();
-
-            commandBuffer1.Playback(EntityManager);
-            commandBuffer1.Dispose();
-            commandBuffer2.Playback(EntityManager);
-            commandBuffer2.Dispose();
             deletedEntities.Dispose();
 
-            return job2;
+            return default;
         }
     }
 }

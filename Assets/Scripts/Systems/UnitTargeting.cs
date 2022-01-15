@@ -10,7 +10,6 @@ using Random = Unity.Mathematics.Random;
 namespace sandbox
 {
     [AlwaysSynchronizeSystem]
-    [UpdateAfter(typeof(DeleteEntitySystem))]
     public class UnitTargeting : JobComponentSystem
     {
         protected override JobHandle OnUpdate(JobHandle inputDeps)
