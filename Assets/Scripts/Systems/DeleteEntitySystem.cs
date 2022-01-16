@@ -9,13 +9,18 @@ namespace sandbox
     [UpdateAfter(typeof(HealthSystem))]
     public class DeleteEntitySystem : SystemBase
     {
-        EntityQuery deletedEntitiesGroupQuery;
+        EntityQuery deletedEntitiesQuery;
         EndSimulationEntityCommandBufferSystem commandBufferSystem;
 
         protected override void OnCreate()
         {
-            deletedEntitiesGroupQuery = GetEntityQuery(ComponentType.ReadOnly<DeleteTag>());
+            deletedEntitiesQuery = GetEntityQuery(ComponentType.ReadOnly<DeleteTag>());
             commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        }
+
+        protected override void OnStartRunning()
+        {
+            RequireForUpdate(deletedEntitiesQuery);
         }
 
         protected override void OnUpdate()
@@ -23,9 +28,9 @@ namespace sandbox
             var commandBuffer1 = commandBufferSystem.CreateCommandBuffer();
             var commandBuffer1Writer = commandBuffer1.AsParallelWriter();
 
-            commandBuffer1.DestroyEntitiesForEntityQuery(deletedEntitiesGroupQuery);
+            commandBuffer1.DestroyEntitiesForEntityQuery(deletedEntitiesQuery);
 
-            var deletedEntities = deletedEntitiesGroupQuery.ToEntityArray(Allocator.TempJob);
+            var deletedEntities = deletedEntitiesQuery.ToEntityArray(Allocator.TempJob);
             GameManager.instance.EntitiesCount -= deletedEntities.Length;
 
             // No one must point to destroyed entities anymore

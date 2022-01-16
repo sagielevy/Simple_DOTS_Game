@@ -34,7 +34,6 @@ namespace sandbox
             };
 
             var triggerJobHandle = triggerJob.Schedule(stepPhysicsWorld.Simulation, ref buildPhysicsWorld.PhysicsWorld, Dependency);
-            bufferSystem.AddJobHandleForProducer(triggerJobHandle);
             triggerJobHandle.Complete();
         }
 
