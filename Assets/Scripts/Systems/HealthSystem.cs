@@ -107,9 +107,6 @@ namespace sandbox
                             Radius = scale
                         }, colliderPtr->Filter, colliderPtr->Material);
                         collider.Value = sphereCollider;
-                    //collider.Value.Value.Filter);
-
-                        //return new PhysicsCollider { Value = sphereCollider };
                     }
                 }
                 else
@@ -124,9 +121,6 @@ namespace sandbox
                             Size = new float3(1) * scale
                         }, colliderPtr->Filter, colliderPtr->Material);
                         collider.Value = boxCollider;
-                    //collider.Value.Value.Filter);
-
-                        //return new PhysicsCollider { Value = boxCollider };
                     }
                 }
 

@@ -32,22 +32,22 @@ namespace sandbox
 
             commandBuffer1.DestroyEntitiesForEntityQuery(deletedEntitiesQuery);
 
-            var deletedEntities = deletedEntitiesQuery.ToEntityArray(Allocator.TempJob);
-            GameManager.instance.EntitiesCount -= deletedEntities.Length;
+            var deletedEntities = GetComponentDataFromEntity<DeleteTag>(true);
+
+            GameManager.instance.EntitiesCount -= deletedEntitiesQuery.CalculateEntityCount();
 
             // No one must point to destroyed entities anymore
-            var job1 = Entities
+            Dependency = Entities
                 .WithReadOnly(deletedEntities)
                 .ForEach((Entity other, int entityInQueryIndex, in UnitHasTarget unitHasTarget) =>
             {
-                if (deletedEntities.Contains(unitHasTarget.target))
+                if (deletedEntities.HasComponent(unitHasTarget.target))
                 {
                     commandBuffer1Writer.RemoveComponent<UnitHasTarget>(entityInQueryIndex, other);
                 }
             }).ScheduleParallel(Dependency);
 
-            job1.Complete();
-            deletedEntities.Dispose();
+            commandBufferSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }

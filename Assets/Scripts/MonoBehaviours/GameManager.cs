@@ -36,9 +36,7 @@ namespace sandbox
         {
             gameStatus.text = GameStatus();
 
-            if (maxEntitiesSpawnCount <= 0) { return; }
-
-            var maxTotalSpawnCount = Mathf.Min(maxSpawnRatePerFrame, maxExistingEntitiesCount - EntitiesCount);
+            var maxTotalSpawnCount = Mathf.Clamp(maxExistingEntitiesCount - EntitiesCount, 0, maxSpawnRatePerFrame);
 
             foreach (var spawner in spawners)
             {
