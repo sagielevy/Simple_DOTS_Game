@@ -3,6 +3,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
+using SphereCollider = Unity.Physics.SphereCollider;
+using BoxCollider = Unity.Physics.BoxCollider;
 
 namespace sandbox
 {
@@ -54,12 +56,49 @@ namespace sandbox
 
             // Non-uniform distribtution of health per unit.
             var health = Mathf.Pow(UnityEngine.Random.value, 6) * maxHealth;
+            var scale = health * healthToSizeRatio;
 
             var randomOffset = UnityEngine.Random.insideUnitCircle * spawningRadius;
             var initialPosition = transform.position + new Vector3(randomOffset.x, 0, randomOffset.y);
 
+            var collider = manager.GetComponentData<PhysicsCollider>(entity);
+
+            if (collider.Value.Value.Type == ColliderType.Sphere)
+            {
+                unsafe
+                {
+                    SphereCollider* colliderPtr = (SphereCollider*)collider.ColliderPtr;
+
+                    var sphereCollider = SphereCollider.Create(new SphereGeometry
+                    {
+                        Center = float3.zero,
+                        Radius = scale
+                    }, colliderPtr->Filter, colliderPtr->Material);
+                    collider.Value = sphereCollider;
+
+                    //manager.SetComponentData(entity, new PhysicsCollider { Value = sphereCollider });
+                }
+            }
+            else
+            {
+                unsafe
+                {
+                    BoxCollider* colliderPtr = (BoxCollider*)collider.ColliderPtr;
+
+                    var boxCollider = BoxCollider.Create(new BoxGeometry
+                    {
+                        Center = float3.zero,
+                        BevelRadius = 0.05f * scale,
+                        Orientation = quaternion.identity,
+                        Size = new float3(1) * scale
+                    }, colliderPtr->Filter, colliderPtr->Material);
+                    collider.Value = boxCollider;
+                    //manager.SetComponentData(entity, new PhysicsCollider { Value = boxCollider });
+                }
+            }
+
             manager.AddComponentData(entity, velocity);
-            manager.AddComponentData(entity, new Scale { Value = health * healthToSizeRatio });
+            manager.AddComponentData(entity, new Scale { Value = scale });
             manager.SetComponentData(entity, new HealthData { health = health });
             manager.SetComponentData(entity, new Translation { Value = new float3(initialPosition) });
         }

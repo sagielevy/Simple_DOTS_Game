@@ -37,7 +37,7 @@ namespace sandbox
 
             // No one must point to destroyed entities anymore
             var job1 = Entities
-                .WithAll<UnitHasTarget>()
+                .WithReadOnly(deletedEntities)
                 .ForEach((Entity other, int entityInQueryIndex, in UnitHasTarget unitHasTarget) =>
             {
                 if (deletedEntities.Contains(unitHasTarget.target))

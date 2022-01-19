@@ -27,10 +27,11 @@ namespace sandbox
         {
             var triggerJob = new TriggerJob
             {
-                entitiesWithHealth = GetComponentDataFromEntity<HealthData>(),
-                teamAEntities = GetComponentDataFromEntity<TeamATag>(),
-                teamBEntities = GetComponentDataFromEntity<TeamBTag>(),
-                deletedEntities = GetComponentDataFromEntity<DeleteTag>(),
+                entitiesWithHealth = GetComponentDataFromEntity<HealthData>(true),
+                teamAEntities = GetComponentDataFromEntity<TeamATag>(true),
+                teamBEntities = GetComponentDataFromEntity<TeamBTag>(true),
+                deletedEntities = GetComponentDataFromEntity<DeleteTag>(true),
+                colliders = GetComponentDataFromEntity<PhysicsCollider>(true),
                 commandBuffer = bufferSystem.CreateCommandBuffer()
             };
 
@@ -44,6 +45,7 @@ namespace sandbox
             [ReadOnly] public ComponentDataFromEntity<TeamATag> teamAEntities;
             [ReadOnly] public ComponentDataFromEntity<TeamBTag> teamBEntities;
             [ReadOnly] public ComponentDataFromEntity<DeleteTag> deletedEntities;
+            [ReadOnly] public ComponentDataFromEntity<PhysicsCollider> colliders;
 
             public EntityCommandBuffer commandBuffer;
 
@@ -61,8 +63,10 @@ namespace sandbox
 
                     if (newHealthA > 0)
                     {
+                        var newScaleA = UnitSpawner.healthToSizeRatio * newHealthA;
                         commandBuffer.SetComponent(collisionEvent.EntityA, new HealthData { health = newHealthA });
-                        commandBuffer.SetComponent(collisionEvent.EntityA, new Scale { Value = UnitSpawner.healthToSizeRatio * newHealthA });
+                        commandBuffer.SetComponent(collisionEvent.EntityA, new Scale { Value = newScaleA });
+                        commandBuffer.SetComponent(collisionEvent.EntityA, MakeCollider(colliders[collisionEvent.EntityA], newScaleA));
                     } else
                     {
                         commandBuffer.AddComponent(collisionEvent.EntityA, new DeleteTag());
@@ -70,8 +74,10 @@ namespace sandbox
 
                     if (newHealthB > 0)
                     {
+                        var newScaleB = UnitSpawner.healthToSizeRatio * newHealthB;
                         commandBuffer.SetComponent(collisionEvent.EntityB, new HealthData { health = newHealthB });
-                        commandBuffer.SetComponent(collisionEvent.EntityB, new Scale { Value = UnitSpawner.healthToSizeRatio * newHealthB });
+                        commandBuffer.SetComponent(collisionEvent.EntityB, new Scale { Value = newScaleB });
+                        commandBuffer.SetComponent(collisionEvent.EntityB, MakeCollider(colliders[collisionEvent.EntityB], newScaleB));
                     }
                     else
                     {
@@ -86,6 +92,45 @@ namespace sandbox
                     teamBEntities.HasComponent(entity2) &&
                     !deletedEntities.HasComponent(entity1) &&
                     !deletedEntities.HasComponent(entity2);
+            }
+
+            private PhysicsCollider MakeCollider(PhysicsCollider collider, float scale)
+            {
+                if (collider.Value.Value.Type == ColliderType.Sphere)
+                {
+                    unsafe
+                    {
+                        SphereCollider* colliderPtr = (SphereCollider*)collider.ColliderPtr;
+                        var sphereCollider = SphereCollider.Create(new SphereGeometry
+                        {
+                            Center = float3.zero,
+                            Radius = scale
+                        }, colliderPtr->Filter, colliderPtr->Material);
+                        collider.Value = sphereCollider;
+                    //collider.Value.Value.Filter);
+
+                        //return new PhysicsCollider { Value = sphereCollider };
+                    }
+                }
+                else
+                {
+                    unsafe {
+                        BoxCollider* colliderPtr = (BoxCollider*)collider.ColliderPtr;
+                        var boxCollider = BoxCollider.Create(new BoxGeometry
+                        {
+                            Center = float3.zero,
+                            BevelRadius = 0.05f * scale,
+                            Orientation = quaternion.identity,
+                            Size = new float3(1) * scale
+                        }, colliderPtr->Filter, colliderPtr->Material);
+                        collider.Value = boxCollider;
+                    //collider.Value.Value.Filter);
+
+                        //return new PhysicsCollider { Value = boxCollider };
+                    }
+                }
+
+                return collider;
             }
         }
     }
