@@ -7,7 +7,7 @@ using Unity.Transforms;
 namespace sandbox
 {
     [AlwaysSynchronizeSystem]
-    [UpdateAfter(typeof(UnitTargeting))]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     public class MovementSystem : SystemBase
     {
         protected override void OnUpdate()

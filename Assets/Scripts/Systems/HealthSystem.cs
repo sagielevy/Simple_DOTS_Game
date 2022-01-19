@@ -9,15 +9,16 @@ using Unity.Transforms;
 namespace sandbox
 {
     [AlwaysSynchronizeSystem]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     public class HealthSystem : SystemBase
     {
-        private BeginInitializationEntityCommandBufferSystem bufferSystem;
+        private BeginFixedStepSimulationEntityCommandBufferSystem bufferSystem;
         private BuildPhysicsWorld buildPhysicsWorld;
         private StepPhysicsWorld stepPhysicsWorld;
 
         protected override void OnCreate()
         {
-            bufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
+            bufferSystem = World.GetOrCreateSystem<BeginFixedStepSimulationEntityCommandBufferSystem>();
             buildPhysicsWorld = World.GetOrCreateSystem<BuildPhysicsWorld>();
             stepPhysicsWorld = World.GetOrCreateSystem<StepPhysicsWorld>();
         }

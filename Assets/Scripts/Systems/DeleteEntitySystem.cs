@@ -6,16 +6,18 @@ namespace sandbox
 {
     // Should always run last as it removes entities.
     [AlwaysSynchronizeSystem]
+    [UpdateAfter(typeof(MovementSystem))]
     [UpdateAfter(typeof(HealthSystem))]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
     public class DeleteEntitySystem : SystemBase
     {
         EntityQuery deletedEntitiesQuery;
-        EndSimulationEntityCommandBufferSystem commandBufferSystem;
+        EndFixedStepSimulationEntityCommandBufferSystem commandBufferSystem;
 
         protected override void OnCreate()
         {
             deletedEntitiesQuery = GetEntityQuery(ComponentType.ReadOnly<DeleteTag>());
-            commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            commandBufferSystem = World.GetOrCreateSystem<EndFixedStepSimulationEntityCommandBufferSystem>();
         }
 
         protected override void OnStartRunning()

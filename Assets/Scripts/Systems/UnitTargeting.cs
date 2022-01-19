@@ -8,17 +8,17 @@ using Random = Unity.Mathematics.Random;
 namespace sandbox
 {
     [AlwaysSynchronizeSystem]
-    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
     public class UnitTargeting : SystemBase
     {
-        private EndFixedStepSimulationEntityCommandBufferSystem commandBufferSystem;
+        private BeginSimulationEntityCommandBufferSystem commandBufferSystem;
 
         private EntityQuery unitsWithNoTargetsQuery;
 
         protected override void OnCreate()
         {
             commandBufferSystem =
-                World.GetOrCreateSystem<EndFixedStepSimulationEntityCommandBufferSystem>();
+                World.GetOrCreateSystem<BeginSimulationEntityCommandBufferSystem>();
 
             unitsWithNoTargetsQuery = GetEntityQuery(new EntityQueryDesc
             {
