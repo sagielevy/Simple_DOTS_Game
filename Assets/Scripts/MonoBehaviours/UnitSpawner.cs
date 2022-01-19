@@ -14,6 +14,7 @@ namespace sandbox
         public const float healthToSizeRatio = 0.05f;
 
         public float maxHealth = 200;
+        public float minHealth = 5;
         public float spawningRadius = 5;
         public int spawnCount;
 
@@ -55,7 +56,7 @@ namespace sandbox
             };
 
             // Non-uniform distribtution of health per unit.
-            var health = Mathf.Pow(UnityEngine.Random.value, 6) * maxHealth;
+            var health = minHealth + Mathf.Pow(UnityEngine.Random.value, 6) * (maxHealth - minHealth);
             var scale = health * healthToSizeRatio;
 
             var randomOffset = UnityEngine.Random.insideUnitCircle * spawningRadius;
@@ -76,7 +77,7 @@ namespace sandbox
                     }, colliderPtr->Filter, colliderPtr->Material);
                     collider.Value = sphereCollider;
 
-                    //manager.SetComponentData(entity, new PhysicsCollider { Value = sphereCollider });
+                    manager.SetComponentData(entity, collider);
                 }
             }
             else
@@ -93,7 +94,7 @@ namespace sandbox
                         Size = new float3(1) * scale
                     }, colliderPtr->Filter, colliderPtr->Material);
                     collider.Value = boxCollider;
-                    //manager.SetComponentData(entity, new PhysicsCollider { Value = boxCollider });
+                    manager.SetComponentData(entity, collider);
                 }
             }
 
